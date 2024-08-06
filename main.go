@@ -10,18 +10,22 @@ import (
 func main() {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-
-		fmt.Print("Enter something: ")
+		fmt.Print("\npokedex> ")
 		input, err := reader.ReadString('\n')
 		input = strings.TrimSpace(input)
 		if err != nil {
 			fmt.Println("Error reading input:", err)
 			return
 		}
-		fmt.Printf("\nInput: %v", input)
-		if input == "exit()" {
+		fmt.Printf("\npokedex> %v", input)
+		commandsList := Commands()
+
+		switch input {
+		case "exit":
 			break
+		case "help":
+			output := commandsList["help"].Description
+			fmt.Printf("\n%v", output)
 		}
-		fmt.Println("You entered:", input)
 	}
 }
