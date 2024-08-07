@@ -18,6 +18,11 @@ func (c cliCommand) Commands() map[string]cliCommand {
 			Description: "Displays a help message",
 			Callback:    commandHelp,
 		},
+		"exit": {
+			Name:        "exit",
+			Description: "Exit the Pokedex",
+			Callback:    commandExit,
+		},
 	}
 }
 
@@ -29,4 +34,9 @@ func commandHelp() error {
 	}
 
 	return errors.New("Command not found")
+}
+
+func commandExit() error {
+
+	return errors.New("Could not exit")
 }

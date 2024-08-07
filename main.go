@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -18,7 +19,13 @@ func main() {
 			fmt.Println("Error reading input:", err)
 			return
 		}
-		// fmt.Printf("\npokedex> %v", input)
-		fmt.Printf("\ncommand[input]: %v", command[input])
+		if description, exists := command[input]; exists {
+			fmt.Printf("\n%v: %v", description.Name, description.Description)
+			err := command[input].Callback
+			if err != nil {
+				log.Printf("Callback failed.")
+			}
+		}
+
 	}
 }
