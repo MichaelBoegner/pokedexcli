@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	command := cliCommand{}.Commands()
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("\npokedex> ")
@@ -17,15 +18,7 @@ func main() {
 			fmt.Println("Error reading input:", err)
 			return
 		}
-		fmt.Printf("\npokedex> %v", input)
-		commandsList := Commands()
-
-		switch input {
-		case "exit":
-			break
-		case "help":
-			output := commandsList["help"].Description
-			fmt.Printf("\n%v", output)
-		}
+		// fmt.Printf("\npokedex> %v", input)
+		fmt.Printf("\ncommand[input]: %v", command[input])
 	}
 }
