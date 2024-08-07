@@ -11,18 +11,27 @@ type cliCommand struct {
 	Callback    func() error
 }
 
+func Commands() map[string]cliCommand {
+	return map[string]cliCommand{
+		"help": {
+			Name:        "help",
+			Description: "Displays a help message",
+			Callback:    commandHelp,
+		},
+		"exit": {
+			Name:        "exit",
+			Description: "Exit the Pokedex",
+			Callback:    commandExit,
+		},
+	}
+}
+
 func commandHelp() error {
 	fmt.Println("This is helpful")
 	return errors.New("Test Error")
 }
 
-func Commands() map[string]cliCommand {
-	commandsList := make(map[string]cliCommand)
-	helpCommand := cliCommand{
-		Name:        "help",
-		Description: "Displays a help message",
-		Callback:    commandHelp,
-	}
-	commandsList["help"] = helpCommand
-	return commandsList
+func commandExit() error {
+	fmt.Println("This exits the program.")
+	return errors.New("couldn't exit")
 }
