@@ -19,11 +19,14 @@ func main() {
 			fmt.Println("Error reading input:", err)
 			return
 		}
-		if description, exists := command[input]; exists {
-			fmt.Printf("\n%v: %v", description.Name, description.Description)
-			err := command[input].Callback
+		if command, exists := command[input]; exists {
+			// fmt.Printf("\n%v: %v", description.Name, description.Description)
+			err := command.Callback()
+			if strings.Contains(fmt.Sprint(err), "Exiting") {
+				break
+			}
 			if err != nil {
-				log.Printf("Callback failed.")
+				log.Printf("\nCallback failed. Err: %s\n", err)
 			}
 		}
 

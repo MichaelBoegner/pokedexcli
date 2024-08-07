@@ -32,11 +32,9 @@ func commandHelp() error {
 	for _, command := range commands {
 		fmt.Printf("%v: %v\n", command.Name, command.Description)
 	}
-
-	return errors.New("Command not found")
+	return nil
 }
 
 func commandExit() error {
-
-	return errors.New("Could not exit")
+	return errors.New("Exiting")
 }
