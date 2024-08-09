@@ -16,11 +16,20 @@ type cliCommand struct {
 
 type ResponseBody struct {
 	Locations []Location `json:"results"`
+	NextPage  string     `json:"next"`
 }
 
 type Location struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
+}
+
+type LocalSession struct {
+	NextPage string
+}
+
+var localSession = &LocalSession{
+	NextPage: "",
 }
 
 func (c cliCommand) Commands() map[string]cliCommand {
@@ -57,12 +66,24 @@ func commandExit() error {
 }
 
 func commandMap() error {
-	var unmarshaledBody ResponseBody
+	var (
+		unmarshaledBody ResponseBody
+		response        *http.Response
+		err             error
+	)
 
-	response, err := http.Get("https://pokeapi.co/api/v2/location")
-	if err != nil {
-		return err
+	if localSession.NextPage != "" {
+		response, err = http.Get(localSession.NextPage)
+		if err != nil {
+			return err
+		}
+	} else {
+		response, err = http.Get("https://pokeapi.co/api/v2/location")
+		if err != nil {
+			return err
+		}
 	}
+
 	defer response.Body.Close() // Ensure the body is closed after reading
 
 	// Read the response body
@@ -72,10 +93,12 @@ func commandMap() error {
 	}
 	json.Unmarshal(body, &unmarshaledBody)
 
+	// Store `next` pagination URL for next 20 locations
+	localSession.NextPage = unmarshaledBody.NextPage
+
 	// Print the response body
 	for _, location := range unmarshaledBody.Locations {
 		fmt.Println(location.Name)
-
 	}
 	return nil
 }
