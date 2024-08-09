@@ -15,8 +15,9 @@ type cliCommand struct {
 }
 
 type ResponseBody struct {
-	Locations []Location `json:"results"`
-	NextPage  string     `json:"next"`
+	Locations    []Location `json:"results"`
+	NextPage     string     `json:"next"`
+	PreviousPage string     `json:"previous"`
 }
 
 type Location struct {
@@ -25,12 +26,19 @@ type Location struct {
 }
 
 type LocalSession struct {
-	NextPage string
+	NextPage     string
+	PreviousPage string
 }
 
-var localSession = &LocalSession{
-	NextPage: "",
-}
+var (
+	localSession = &LocalSession{
+		NextPage:     "",
+		PreviousPage: "",
+	}
+	response        *http.Response
+	err             error
+	unmarshaledBody ResponseBody
+)
 
 func (c cliCommand) Commands() map[string]cliCommand {
 	return map[string]cliCommand{
@@ -46,8 +54,13 @@ func (c cliCommand) Commands() map[string]cliCommand {
 		},
 		"map": {
 			Name:        "map",
-			Description: "Displays the names of the last 20 location areas in the Pokemon world. Each subsequent call displays the next 20 locations.",
+			Description: "Displays the names of the next 20 location areas in the Pokemon world.",
 			Callback:    commandMap,
+		},
+		"mapb": {
+			Name:        "mapb",
+			Description: "Displays the names of the previous 20 location areas in the Pokemon world.",
+			Callback:    commandMapB,
 		},
 	}
 }
@@ -66,12 +79,6 @@ func commandExit() error {
 }
 
 func commandMap() error {
-	var (
-		unmarshaledBody ResponseBody
-		response        *http.Response
-		err             error
-	)
-
 	if localSession.NextPage != "" {
 		response, err = http.Get(localSession.NextPage)
 		if err != nil {
@@ -95,6 +102,37 @@ func commandMap() error {
 
 	// Store `next` pagination URL for next 20 locations
 	localSession.NextPage = unmarshaledBody.NextPage
+	localSession.PreviousPage = unmarshaledBody.PreviousPage
+
+	// Print the response body
+	for _, location := range unmarshaledBody.Locations {
+		fmt.Println(location.Name)
+	}
+	return nil
+}
+
+func commandMapB() error {
+	fmt.Printf("\nlocalSession.PreviousPage: %v", localSession.PreviousPage)
+	if localSession.PreviousPage != "" {
+		response, err = http.Get(localSession.PreviousPage)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("No previous page available.")
+	}
+	defer response.Body.Close() // Ensure the body is closed after reading
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(body, &unmarshaledBody)
+
+	// Store `next` pagination URL for next 20 locations
+	localSession.NextPage = unmarshaledBody.NextPage
+	localSession.PreviousPage = unmarshaledBody.PreviousPage
 
 	// Print the response body
 	for _, location := range unmarshaledBody.Locations {
