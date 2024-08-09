@@ -6,9 +6,15 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/michaelboegner/pokedexcli/internal/pokecache"
 )
 
 func main() {
+	// Initialize cache, commands, and reader
+	cache := pokecache.NewCache()
+	fmt.Printf("\ncache: %v", cache)
+
 	command := cliCommand{}.Commands()
 	reader := bufio.NewReader(os.Stdin)
 	for {
