@@ -26,7 +26,6 @@ func main() {
 			return
 		}
 		if command, exists := command[input]; exists {
-			// fmt.Printf("\n%v: %v", description.Name, description.Description)
 			err := command.Callback()
 			if strings.Contains(fmt.Sprint(err), "Exiting") {
 				break
