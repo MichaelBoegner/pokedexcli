@@ -10,11 +10,10 @@ import (
 	"github.com/michaelboegner/pokedexcli/internal/pokecache"
 )
 
-func main() {
-	// Initialize cache, commands, and reader
-	cache := pokecache.NewCache()
-	fmt.Printf("\ncache: %v", cache)
+var cache = pokecache.NewCache()
 
+func main() {
+	// Initialize commands and reader
 	command := cliCommand{}.Commands()
 	reader := bufio.NewReader(os.Stdin)
 	for {

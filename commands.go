@@ -79,16 +79,19 @@ func commandExit() error {
 }
 
 func commandMap() error {
+	var (
+		url string
+	)
+	locations := make([]byte, 0)
 	if localSession.NextPage != "" {
-		response, err = http.Get(localSession.NextPage)
-		if err != nil {
-			return err
-		}
+		url = localSession.NextPage
 	} else {
-		response, err = http.Get("https://pokeapi.co/api/v2/location")
-		if err != nil {
-			return err
-		}
+		url = "https://pokeapi.co/api/v2/location"
+	}
+
+	response, err = http.Get(url)
+	if err != nil {
+		return err
 	}
 
 	defer response.Body.Close() // Ensure the body is closed after reading
@@ -107,7 +110,11 @@ func commandMap() error {
 	// Print the response body
 	for _, location := range unmarshaledBody.Locations {
 		fmt.Println(location.Name)
+		locations = append(locations, []byte(location.Name)...)
 	}
+
+	// Add the latest data to the cache
+	cache.Add(url, locations)
 	return nil
 }
 

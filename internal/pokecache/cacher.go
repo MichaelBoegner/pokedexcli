@@ -20,11 +20,11 @@ func NewCache() *Cache {
 	cache := &Cache{
 		Cached: make(map[string]cacheEntry),
 	}
-
 	return cache
 }
 
 func (c *Cache) Add(key string, data []byte) {
+
 	createdAt := time.Now()
 	c.Cached[key] = cacheEntry{
 		createdAt: createdAt,
