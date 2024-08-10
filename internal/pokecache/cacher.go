@@ -1,44 +1,53 @@
 package pokecache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
 
 type Cache struct {
-	Cached map[string]cacheEntry
+	Cached map[string]CacheEntry
 	Mu     sync.Mutex
 }
 
-type cacheEntry struct {
-	createdAt time.Time
-	data      []byte
+type CacheEntry struct {
+	CreatedAt    time.Time
+	Data         []byte
+	NextPage     string
+	PreviousPage string
 }
 
 func NewCache() *Cache {
 	cache := &Cache{
-		Cached: make(map[string]cacheEntry),
+		Cached: make(map[string]CacheEntry),
 	}
 	return cache
 }
 
-func (c *Cache) Add(key string, data []byte) {
+func (c *Cache) Add(key, nextPage, previousPage string, data []byte) {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
+
 	createdAt := time.Now()
-	c.Cached[key] = cacheEntry{
-		createdAt: createdAt,
-		data:      data,
+	c.Cached[key] = CacheEntry{
+		CreatedAt:    createdAt,
+		Data:         data,
+		NextPage:     nextPage,
+		PreviousPage: previousPage,
 	}
 }
 
-func (c *Cache) Get(key string) ([]byte, bool) {
+func (c *Cache) Get(key string) (CacheEntry, bool) {
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
-	var data []byte
-	data = c.Cached[key].data
-	if data == nil {
-		return nil, false
+
+	var cached CacheEntry
+	var blankCache CacheEntry
+	cached = c.Cached[key]
+	if cached.Data == nil {
+		return blankCache, false
 	}
-	return data, true
+	fmt.Printf("\nGet() returns data: %v", cached.Data)
+	return cached, true
 }

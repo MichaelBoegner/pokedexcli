@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 )
 
 type cliCommand struct {
@@ -79,16 +80,28 @@ func commandExit() error {
 }
 
 func commandMap() error {
-	var (
-		url string
-	)
+	var url string
 	locations := make([]byte, 0)
+
 	if localSession.NextPage != "" {
 		url = localSession.NextPage
 	} else {
 		url = "https://pokeapi.co/api/v2/location"
 	}
 
+	// Check for cached key and val. Return if succesful.
+	if cachedEntry, ok := cache.Get(url); ok {
+		locationsStr := string(cachedEntry.Data)
+		words := strings.Split(locationsStr, " ")
+		for _, word := range words {
+			fmt.Println(word)
+		}
+		localSession.NextPage = cachedEntry.NextPage
+		localSession.PreviousPage = cachedEntry.PreviousPage
+		return nil
+	}
+
+	// Get locations
 	response, err = http.Get(url)
 	if err != nil {
 		return err
@@ -110,23 +123,45 @@ func commandMap() error {
 	// Print the response body
 	for _, location := range unmarshaledBody.Locations {
 		fmt.Println(location.Name)
+
 		locations = append(locations, []byte(location.Name)...)
+		locations = append(locations, ' ')
 	}
 
 	// Add the latest data to the cache
-	cache.Add(url, locations)
+	cache.Add(url, localSession.NextPage, localSession.PreviousPage, locations)
+
 	return nil
 }
 
 func commandMapB() error {
+	var (
+		url string
+	)
+
 	if localSession.PreviousPage != "" {
-		response, err = http.Get(localSession.PreviousPage)
-		if err != nil {
-			return err
-		}
+		url = localSession.PreviousPage
 	} else {
 		return errors.New("No previous page available.")
 	}
+
+	// Check for cached key and val. Return if succesful.
+	if cachedEntry, ok := cache.Get(url); ok {
+		locationsStr := string(cachedEntry.Data)
+		words := strings.Split(locationsStr, " ")
+		for _, word := range words {
+			fmt.Println(word)
+		}
+		localSession.NextPage = cachedEntry.NextPage
+		localSession.PreviousPage = cachedEntry.PreviousPage
+		return nil
+	}
+
+	response, err = http.Get(url)
+	if err != nil {
+		return err
+	}
+
 	defer response.Body.Close() // Ensure the body is closed after reading
 
 	// Read the response body
