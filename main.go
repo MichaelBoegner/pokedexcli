@@ -6,16 +6,18 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/michaelboegner/pokedexcli/internal/pokecache"
 )
 
-var cache = pokecache.NewCache()
+var cache = pokecache.NewCache(5 * time.Second)
 
 func main() {
 	// Initialize commands and reader
 	command := cliCommand{}.Commands()
 	reader := bufio.NewReader(os.Stdin)
+	go cache.ReapLoop()
 	for {
 		fmt.Print("\npokedex> ")
 		input, err := reader.ReadString('\n')

@@ -135,7 +135,6 @@ func commandMap() error {
 }
 
 func commandMapB() error {
-	// fmt.Printf("\nlocalSession: %v", localSession)
 	var url string
 
 	if localSession.PreviousPage != "" {
@@ -146,7 +145,6 @@ func commandMapB() error {
 
 	// Check for cached key and val. Return if succesful.
 	if cachedEntry, ok := cache.Get(url); ok {
-		// fmt.Printf("\nAre we finding it in cache? %v", cachedEntry)
 		locationsStr := string(cachedEntry.Data)
 		words := strings.Split(locationsStr, " ")
 		for _, word := range words {

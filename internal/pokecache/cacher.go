@@ -7,8 +7,9 @@ import (
 )
 
 type Cache struct {
-	Cached map[string]CacheEntry
-	Mu     sync.Mutex
+	Cached   map[string]CacheEntry
+	Mu       sync.Mutex
+	Interval time.Duration
 }
 
 type CacheEntry struct {
@@ -18,9 +19,10 @@ type CacheEntry struct {
 	PreviousPage string
 }
 
-func NewCache() *Cache {
+func NewCache(interval time.Duration) *Cache {
 	cache := &Cache{
-		Cached: make(map[string]CacheEntry),
+		Cached:   make(map[string]CacheEntry),
+		Interval: interval,
 	}
 	return cache
 }
@@ -36,7 +38,6 @@ func (c *Cache) Add(key, nextPage, previousPage string, data []byte) {
 		NextPage:     nextPage,
 		PreviousPage: previousPage,
 	}
-	// fmt.Printf("\ncache added to: %v", key)
 }
 
 func (c *Cache) Get(key string) (CacheEntry, bool) {
@@ -51,4 +52,20 @@ func (c *Cache) Get(key string) (CacheEntry, bool) {
 	}
 	fmt.Printf("\nGet() returns data: %v", cached.Data)
 	return cached, true
+}
+
+func (c *Cache) ReapLoop() {
+	ticker := time.NewTicker(c.Interval)
+
+	for t := range ticker.C {
+		fmt.Printf("\nTick: %v", t)
+		for key, cache := range c.Cached {
+			fmt.Printf("\nCache createdAt: %v", cache.CreatedAt)
+			timeDiff := t.Sub(cache.CreatedAt)
+			if timeDiff > c.Interval {
+				delete(c.Cached, key)
+			}
+		}
+	}
+
 }
