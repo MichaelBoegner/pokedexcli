@@ -32,3 +32,12 @@ func (c *Cache) Add(key string, data []byte) {
 	}
 	fmt.Printf("\ncache of c: %v", c)
 }
+
+func (c *Cache) Get(key string) ([]byte, bool) {
+	var data []byte
+	data = c.Cached[key].data
+	if data == nil {
+		return nil, false
+	}
+	return data, true
+}

@@ -31,6 +31,5 @@ func main() {
 				log.Printf("\nCallback failed. Err: %s\n", err)
 			}
 		}
-
 	}
 }
