@@ -27,9 +27,6 @@ func main() {
 		}
 		if command, exists := command[input]; exists {
 			err := command.Callback()
-			if strings.Contains(fmt.Sprint(err), "Exiting") {
-				break
-			}
 			if err != nil {
 				log.Printf("\nCallback failed. Err: %s\n", err)
 			}

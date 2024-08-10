@@ -1,6 +1,7 @@
 package pokecache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -21,4 +22,13 @@ func NewCache() *Cache {
 	}
 
 	return cache
+}
+
+func (c *Cache) Add(key string, data []byte) {
+	createdAt := time.Now()
+	c.Cached[key] = cacheEntry{
+		createdAt: createdAt,
+		data:      data,
+	}
+	fmt.Printf("\ncache of c: %v", c)
 }
