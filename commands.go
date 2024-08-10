@@ -119,7 +119,6 @@ func commandMap() error {
 }
 
 func commandMapB() error {
-	fmt.Printf("\nlocalSession.PreviousPage: %v", localSession.PreviousPage)
 	if localSession.PreviousPage != "" {
 		response, err = http.Get(localSession.PreviousPage)
 		if err != nil {
