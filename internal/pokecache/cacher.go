@@ -23,6 +23,8 @@ func NewCache() *Cache {
 }
 
 func (c *Cache) Add(key string, data []byte) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	createdAt := time.Now()
 	c.Cached[key] = cacheEntry{
 		createdAt: createdAt,
@@ -31,6 +33,8 @@ func (c *Cache) Add(key string, data []byte) {
 }
 
 func (c *Cache) Get(key string) ([]byte, bool) {
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	var data []byte
 	data = c.Cached[key].data
 	if data == nil {
