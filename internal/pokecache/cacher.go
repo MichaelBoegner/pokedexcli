@@ -36,6 +36,7 @@ func (c *Cache) Add(key, nextPage, previousPage string, data []byte) {
 		NextPage:     nextPage,
 		PreviousPage: previousPage,
 	}
+	// fmt.Printf("\ncache added to: %v", key)
 }
 
 func (c *Cache) Get(key string) (CacheEntry, bool) {

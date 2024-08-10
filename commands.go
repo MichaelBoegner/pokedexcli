@@ -86,7 +86,7 @@ func commandMap() error {
 	if localSession.NextPage != "" {
 		url = localSession.NextPage
 	} else {
-		url = "https://pokeapi.co/api/v2/location"
+		url = "https://pokeapi.co/api/v2/location?offset=0&limit=20"
 	}
 
 	// Check for cached key and val. Return if succesful.
@@ -135,9 +135,8 @@ func commandMap() error {
 }
 
 func commandMapB() error {
-	var (
-		url string
-	)
+	// fmt.Printf("\nlocalSession: %v", localSession)
+	var url string
 
 	if localSession.PreviousPage != "" {
 		url = localSession.PreviousPage
@@ -147,6 +146,7 @@ func commandMapB() error {
 
 	// Check for cached key and val. Return if succesful.
 	if cachedEntry, ok := cache.Get(url); ok {
+		// fmt.Printf("\nAre we finding it in cache? %v", cachedEntry)
 		locationsStr := string(cachedEntry.Data)
 		words := strings.Split(locationsStr, " ")
 		for _, word := range words {
