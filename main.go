@@ -26,8 +26,13 @@ func main() {
 			fmt.Println("Error reading input:", err)
 			return
 		}
-		if command, exists := command[input]; exists {
-			err := command.Callback()
+		splitInput := strings.Split(input, " ")
+		if command, exists := command[splitInput[0]]; exists {
+			if len(splitInput) == 2 {
+				err = command.Callback(splitInput[1])
+			} else {
+				err = command.Callback("")
+			}
 			if err != nil {
 				log.Printf("\nCallback failed. Err: %s\n", err)
 			}

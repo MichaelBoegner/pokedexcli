@@ -12,7 +12,7 @@ import (
 type cliCommand struct {
 	Name        string
 	Description string
-	Callback    func() error
+	Callback    func(string) error
 }
 
 type ResponseBody struct {
@@ -63,10 +63,15 @@ func (c cliCommand) Commands() map[string]cliCommand {
 			Description: "Displays the names of the previous 20 location areas in the Pokemon world.",
 			Callback:    commandMapB,
 		},
+		"explore": {
+			Name:        "explore",
+			Description: "explore <area_name> to explore that given area",
+			Callback:    commandExplore,
+		},
 	}
 }
 
-func commandHelp() error {
+func commandHelp(command string) error {
 	commands := cliCommand{}.Commands()
 	fmt.Printf("Welcome to the Pokedex!\n Usage\n\n")
 	for _, command := range commands {
@@ -75,11 +80,11 @@ func commandHelp() error {
 	return nil
 }
 
-func commandExit() error {
+func commandExit(command string) error {
 	return errors.New("Exiting")
 }
 
-func commandMap() error {
+func commandMap(command string) error {
 	var url string
 	locations := make([]byte, 0)
 
@@ -134,7 +139,7 @@ func commandMap() error {
 	return nil
 }
 
-func commandMapB() error {
+func commandMapB(command string) error {
 	var url string
 
 	if localSession.PreviousPage != "" {
@@ -143,7 +148,7 @@ func commandMapB() error {
 		return errors.New("No previous page available.")
 	}
 
-	// Check for cached key and val. Return if succesful.
+	// Check for cached key and val. Return cached locations if successful.
 	if cachedEntry, ok := cache.Get(url); ok {
 		locationsStr := string(cachedEntry.Data)
 		words := strings.Split(locationsStr, " ")
@@ -177,5 +182,10 @@ func commandMapB() error {
 	for _, location := range unmarshaledBody.Locations {
 		fmt.Println(location.Name)
 	}
+	return nil
+}
+
+func commandExplore(command string) error {
+	fmt.Printf("\nCommand: %v", command)
 	return nil
 }
