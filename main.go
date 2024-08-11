@@ -26,6 +26,7 @@ func main() {
 			fmt.Println("Error reading input:", err)
 			return
 		}
+
 		splitInput := strings.Split(input, " ")
 		if command, exists := command[splitInput[0]]; exists {
 			if len(splitInput) == 2 {

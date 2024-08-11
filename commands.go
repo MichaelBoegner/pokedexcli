@@ -16,14 +16,19 @@ type cliCommand struct {
 }
 
 type ResponseBody struct {
-	Locations    []Location `json:"results"`
-	NextPage     string     `json:"next"`
-	PreviousPage string     `json:"previous"`
+	Locations         []Location   `json:"results"`
+	NextPage          string       `json:"next"`
+	PreviousPage      string       `json:"previous"`
+	PokemonEncounters []Encounters `json:"pokemon_encounters"`
 }
 
 type Location struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`
+}
+
+type Encounters struct {
+	Pokemon map[string]string `json:"pokemon"`
 }
 
 type LocalSession struct {
@@ -91,7 +96,7 @@ func commandMap(command string) error {
 	if localSession.NextPage != "" {
 		url = localSession.NextPage
 	} else {
-		url = "https://pokeapi.co/api/v2/location?offset=0&limit=20"
+		url = "https://pokeapi.co/api/v2/location-area?offset=0&limit=20"
 	}
 
 	// Check for cached key and val. Return if succesful.
@@ -186,6 +191,45 @@ func commandMapB(command string) error {
 }
 
 func commandExplore(command string) error {
-	fmt.Printf("\nCommand: %v", command)
+	pokemons := make([]byte, 0)
+
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/location-area/%v", command)
+
+	// Check for cached key and val. Return if succesful.
+	if cachedEntry, ok := cache.Get(url); ok {
+		pokemonsStr := string(cachedEntry.Data)
+		pokemons := strings.Split(pokemonsStr, " ")
+		fmt.Printf("\nExploring pastoria-city-area...\nFound Pokemon:\n")
+		for _, pokemon := range pokemons {
+			fmt.Printf(" - %v\n", pokemon)
+		}
+		return nil
+	}
+
+	// Get locations
+	response, err = http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close() // Ensure the body is closed after reading
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(body, &unmarshaledBody)
+	fmt.Printf("\nExploring pastoria-city-area...\nFound Pokemon:\n")
+	for i, encounter := range unmarshaledBody.PokemonEncounters {
+		fmt.Printf(" - %v\n", encounter.Pokemon["name"])
+		pokemons = append(pokemons, []byte(encounter.Pokemon["name"])...)
+		if i < len(unmarshaledBody.PokemonEncounters)-1 {
+			pokemons = append(pokemons, ' ')
+		}
+	}
+
+	cache.Add(url, "", "", pokemons)
+
 	return nil
 }
