@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type cliCommand struct {
@@ -21,6 +23,15 @@ type ResponseBody struct {
 	PreviousPage      string       `json:"previous"`
 	PokemonEncounters []Encounters `json:"pokemon_encounters"`
 	Experience        int          `json:"base_experience"`
+}
+
+type Pokedex struct {
+	Caught map[string]Pokemon
+}
+
+type Pokemon struct {
+	Name       string
+	Experience int
 }
 
 type Location struct {
@@ -45,6 +56,9 @@ var (
 	response        *http.Response
 	err             error
 	unmarshaledBody ResponseBody
+	pokedex         = &Pokedex{
+		make(map[string]Pokemon),
+	}
 )
 
 func (c cliCommand) Commands() map[string]cliCommand {
@@ -245,17 +259,6 @@ func commandCatch(command string) error {
 
 	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%v", command)
 
-	// // Check for cached key and val. Return if succesful.
-	// if cachedEntry, ok := cache.Get(url); ok {
-	// 	pokemonsStr := string(cachedEntry.Data)
-	// 	pokemons := strings.Split(pokemonsStr, " ")
-	// 	fmt.Printf("\nExploring pastoria-city-area...\nFound Pokemon:\n")
-	// 	for _, pokemon := range pokemons {
-	// 		fmt.Printf(" - %v\n", pokemon)
-	// 	}
-	// 	return nil
-	// }
-
 	// Get locations
 	response, err = http.Get(url)
 	if err != nil {
@@ -270,5 +273,54 @@ func commandCatch(command string) error {
 		return err
 	}
 	json.Unmarshal(body, &unmarshaledBody)
+	randomNumber := generateWeightedRandomList(500)
+	fmt.Printf("Throwing a Pokeball at %v...\n", command)
+	if _, ok := pokedex.Caught[command]; ok {
+		fmt.Printf("You already caught %v!", command)
+	} else if unmarshaledBody.Experience < randomNumber {
+		fmt.Printf("%v was caught!\n", command)
+		pokemon := Pokemon{
+			Name:       command,
+			Experience: unmarshaledBody.Experience,
+		}
+		pokedex.Caught[command] = pokemon
+		fmt.Printf("Pokedex: %v\n", pokedex)
+	} else {
+		fmt.Printf("%v escaped!\n", command)
+	}
+	return nil
+}
 
+func generateWeightedRandomList(maxNum int) int {
+	rand.NewSource(time.Now().UnixNano()) // Seed the random number generator
+
+	// Create weights that decrease as numbers increase
+	weights := make([]float64, maxNum)
+	totalWeight := 0.0
+
+	for i := 1; i <= maxNum; i++ {
+		weights[i-1] = 1.0 / float64(i) // Decreasing weight
+		totalWeight += weights[i-1]
+	}
+
+	// Normalize the weights
+	for i := range weights {
+		weights[i] /= totalWeight
+	}
+
+	// Generate random numbers based on the weights
+
+	r := rand.Float64()
+	randomNumber := 0
+	cumulativeWeight := 0.0
+
+	for j, weight := range weights {
+		cumulativeWeight += weight
+		if r <= cumulativeWeight {
+			randomNumber = j + 1
+			break
+		}
+	}
+
+	return randomNumber
 }
