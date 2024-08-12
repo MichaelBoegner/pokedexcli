@@ -20,6 +20,7 @@ type ResponseBody struct {
 	NextPage          string       `json:"next"`
 	PreviousPage      string       `json:"previous"`
 	PokemonEncounters []Encounters `json:"pokemon_encounters"`
+	Experience        int          `json:"base_experience"`
 }
 
 type Location struct {
@@ -70,8 +71,13 @@ func (c cliCommand) Commands() map[string]cliCommand {
 		},
 		"explore": {
 			Name:        "explore",
-			Description: "explore <area_name> to explore that given area",
+			Description: "`explore <area_name>` to explore that given area.",
 			Callback:    commandExplore,
+		},
+		"catch": {
+			Name:        "catch",
+			Description: "`catch <pokemon_name>` to try and catch given pokemon.",
+			Callback:    commandCatch,
 		},
 	}
 }
@@ -232,4 +238,37 @@ func commandExplore(command string) error {
 	cache.Add(url, "", "", pokemons)
 
 	return nil
+}
+
+func commandCatch(command string) error {
+	// var pokemonBaseExperience int
+
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%v", command)
+
+	// // Check for cached key and val. Return if succesful.
+	// if cachedEntry, ok := cache.Get(url); ok {
+	// 	pokemonsStr := string(cachedEntry.Data)
+	// 	pokemons := strings.Split(pokemonsStr, " ")
+	// 	fmt.Printf("\nExploring pastoria-city-area...\nFound Pokemon:\n")
+	// 	for _, pokemon := range pokemons {
+	// 		fmt.Printf(" - %v\n", pokemon)
+	// 	}
+	// 	return nil
+	// }
+
+	// Get locations
+	response, err = http.Get(url)
+	if err != nil {
+		return err
+	}
+
+	defer response.Body.Close() // Ensure the body is closed after reading
+
+	// Read the response body
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+	json.Unmarshal(body, &unmarshaledBody)
+
 }
