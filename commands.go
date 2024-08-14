@@ -23,6 +23,13 @@ type ResponseBody struct {
 	PreviousPage      string       `json:"previous"`
 	PokemonEncounters []Encounters `json:"pokemon_encounters"`
 	Experience        int          `json:"base_experience"`
+	Name              string       `json:"name"`
+	Height            int          `json:"height"`
+	Weight            int          `json:"weight"`
+	BaseStat          int          `json:"stats[0].base_stat"`
+	Effort            int          `json:"stats[0].effort"`
+	StatName          string       `json:"stats[0].stat.name"`
+	StatUrl           string       `json:"stats[0].stat.url"`
 }
 
 type Pokedex struct {
@@ -32,6 +39,16 @@ type Pokedex struct {
 type Pokemon struct {
 	Name       string
 	Experience int
+	Height     int
+	Weight     int
+	Stats      stats
+}
+
+type stats struct {
+	BaseStat int
+	Effort   int
+	StatName string
+	StatUrl  string
 }
 
 type Location struct {
@@ -92,6 +109,11 @@ func (c cliCommand) Commands() map[string]cliCommand {
 			Name:        "catch",
 			Description: "`catch <pokemon_name>` to try and catch given pokemon.",
 			Callback:    commandCatch,
+		},
+		"inspect": {
+			Name:        "inspect",
+			Description: "`inspect <pokemon_name>` to try and inspect given pokemon. You can only inspect pokemon you have caught.",
+			Callback:    commandInspect,
 		},
 	}
 }
@@ -279,15 +301,31 @@ func commandCatch(command string) error {
 		fmt.Printf("You already caught %v!", command)
 	} else if unmarshaledBody.Experience < randomNumber {
 		fmt.Printf("%v was caught!\n", command)
+
+		stats := stats{
+			BaseStat: unmarshaledBody.BaseStat,
+			Effort:   unmarshaledBody.Effort,
+			StatName: unmarshaledBody.StatName,
+			StatUrl:  unmarshaledBody.StatUrl,
+		}
 		pokemon := Pokemon{
 			Name:       command,
 			Experience: unmarshaledBody.Experience,
+			Height:     unmarshaledBody.Height,
+			Weight:     unmarshaledBody.Weight,
+			Stats:      stats,
 		}
+
 		pokedex.Caught[command] = pokemon
 		fmt.Printf("Pokedex: %v\n", pokedex)
 	} else {
 		fmt.Printf("%v escaped!\n", command)
 	}
+	return nil
+}
+
+func commandInspect(command string) error {
+	fmt.Printf("Pokedex inspect: %v", pokedex.Caught[command])
 	return nil
 }
 
