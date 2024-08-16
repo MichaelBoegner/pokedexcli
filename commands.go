@@ -126,6 +126,11 @@ func (c cliCommand) Commands() map[string]cliCommand {
 			Description: "`inspect <pokemon_name>` to try and inspect given pokemon. You can only inspect pokemon you have caught.",
 			Callback:    commandInspect,
 		},
+		"pokedex": {
+			Name:        "pokedex",
+			Description: "See all the pokemon you have caught.",
+			Callback:    commandPokedex,
+		},
 	}
 }
 
@@ -334,6 +339,17 @@ func commandInspect(command string) error {
 		return errors.New("Pokemon not yet caught or does not exist.")
 	}
 
+	return nil
+}
+
+func commandPokedex(command string) error {
+	for _, pokemon := range pokedex.Caught {
+		fmt.Printf("Your Pokedex:\n")
+		fmt.Printf(" - %v\n", pokemon.Name)
+	}
+	if len(pokedex.Caught) == 0 {
+		fmt.Println("You have not yet caught any Pokemon.")
+	}
 	return nil
 }
 
