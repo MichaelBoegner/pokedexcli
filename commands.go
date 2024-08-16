@@ -36,19 +36,30 @@ type Pokedex struct {
 	Caught map[string]Pokemon
 }
 
-type Pokemon struct {
-	Name       string
-	Experience int
-	Height     int
-	Weight     int
-	Stats      stats
+type Stat struct {
+	BaseStat int `json:"base_stat"`
+	Effort   int `json:"effort"`
+	StatInfo struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"stat"`
 }
 
-type stats struct {
-	BaseStat int
-	Effort   int
-	StatName string
-	StatUrl  string
+type Type struct {
+	Slot     int `json:"slot"`
+	TypeInfo struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"type"`
+}
+
+type Pokemon struct {
+	Name       string `json:"name"`
+	Height     int    `json:"height"`
+	Weight     int    `json:"weight"`
+	Experience int    `json:"base_experience"`
+	Stats      []Stat `json:"stats"`
+	Types      []Type `json:"types"`
 }
 
 type Location struct {
@@ -277,8 +288,7 @@ func commandExplore(command string) error {
 }
 
 func commandCatch(command string) error {
-	// var pokemonBaseExperience int
-
+	var pokemon Pokemon
 	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%v", command)
 
 	// Get locations
@@ -295,29 +305,22 @@ func commandCatch(command string) error {
 		return err
 	}
 	json.Unmarshal(body, &unmarshaledBody)
+
 	randomNumber := generateWeightedRandomList(500)
+
 	fmt.Printf("Throwing a Pokeball at %v...\n", command)
 	if _, ok := pokedex.Caught[command]; ok {
 		fmt.Printf("You already caught %v!", command)
 	} else if unmarshaledBody.Experience < randomNumber {
 		fmt.Printf("%v was caught!\n", command)
 
-		stats := stats{
-			BaseStat: unmarshaledBody.BaseStat,
-			Effort:   unmarshaledBody.Effort,
-			StatName: unmarshaledBody.StatName,
-			StatUrl:  unmarshaledBody.StatUrl,
-		}
-		pokemon := Pokemon{
-			Name:       command,
-			Experience: unmarshaledBody.Experience,
-			Height:     unmarshaledBody.Height,
-			Weight:     unmarshaledBody.Weight,
-			Stats:      stats,
+		err := json.Unmarshal(body, &pokemon)
+		if err != nil {
+			fmt.Println("Error unmarshalling JSON:", err)
+			return err
 		}
 
 		pokedex.Caught[command] = pokemon
-		fmt.Printf("Pokedex: %v\n", pokedex)
 	} else {
 		fmt.Printf("%v escaped!\n", command)
 	}
@@ -325,7 +328,12 @@ func commandCatch(command string) error {
 }
 
 func commandInspect(command string) error {
-	fmt.Printf("Pokedex inspect: %v", pokedex.Caught[command])
+	if _, ok := pokedex.Caught[command]; ok {
+		fmt.Printf("Pokedex inspect: %v", pokedex.Caught[command])
+	} else {
+		return errors.New("Pokemon not yet caught or does not exist.")
+	}
+
 	return nil
 }
 
